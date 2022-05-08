@@ -46,10 +46,10 @@ protected:
 	class UCurveFloat* CameraFloatCurve;
 
 	UPROPERTY()
-	FVector StartLocation;
+	FVector RightShoulderLocation;
 
 	UPROPERTY()
-	FVector EndLocation;
+	FVector LeftShoulderLocation;
 
 	//Declare our delegate function to be binded with TimelineFloatReturn(float value)
 	FOnTimelineFloat InterpFunction{};

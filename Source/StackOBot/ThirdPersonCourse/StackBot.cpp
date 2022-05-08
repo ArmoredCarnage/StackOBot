@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/TimelineTemplate.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
@@ -27,7 +28,7 @@ AStackBot::AStackBot()
 	FollowStackBotCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera Component"));
 	FollowStackBotCameraComponent->SetupAttachment(FollowStackBotSpringArmComponent, USpringArmComponent::SocketName);
 	FollowStackBotCameraComponent->bUsePawnControlRotation = false;
-	FollowStackBotCameraComponent->SetAutoActivate(false);
+	//FollowStackBotCameraComponent->SetAutoActivate(false);
 
 	//Shoulder spring arm component
 	ShoulderStackBotSpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Shoulder Spring Arm"));
@@ -39,11 +40,14 @@ AStackBot::AStackBot()
 	ShoulderStackBotCameraComponent->SetupAttachment(ShoulderStackBotSpringArmComponent, USpringArmComponent::SocketName);
 	FVector ShoulderCameraOffset{0, 40.0f, 0};
 	ShoulderStackBotCameraComponent->AddLocalOffset(ShoulderCameraOffset);
+	ShoulderStackBotCameraComponent->SetAutoActivate(false);
 
 	CameraSwitchTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("Timeline"));
 	InterpFunction.BindUFunction(this, FName("TimeLineFloatReturn"));
 	TimeLineFinished.BindUFunction(this, FName("OnTimelineFinished"));
-	
+
+	this->GetCharacterMovement()->bOrientRotationToMovement = true;
+	this->GetCharacterMovement()->MaxWalkSpeed = 500.0f;
 }
 
 // Called when the game starts or when spawned
@@ -106,8 +110,7 @@ void AStackBot::MoveRight(float Value)
 
 void AStackBot::TimelineFloatReturn(float value)
 {
-	//ShoulderStackBotSpringArmComponent->SetRelativeLocation(FMath::Lerp(StartLocation, EndLocation, value));
-	ShoulderStackBotSpringArmComponent->SetWorldLocation(FMath::Lerp(StartLocation, EndLocation, value));
+	ShoulderStackBotCameraComponent->SetRelativeLocation(FMath::Lerp(RightShoulderLocation, LeftShoulderLocation, value));
 }
 
 void AStackBot::OnTimelineFinished()
@@ -125,8 +128,8 @@ void AStackBot::SwitchCameras()
 		CameraSwitchTimeline->SetTimelineFinishedFunc(TimeLineFinished);
 
 		//Setting vectors
-		StartLocation = ShoulderStackBotSpringArmComponent->GetRelativeLocation();
-		EndLocation = FVector(GetActorLocation().X - 50.0, GetActorLocation().Y, GetActorLocation().Z);
+		RightShoulderLocation = {0.0f, 40.0f, 0.0f};
+		LeftShoulderLocation = {0.0f, -40.0f, 0.0f};
 
 		//Setting timeline settings before we start it
 		CameraSwitchTimeline->SetLooping(false);
